@@ -19,6 +19,11 @@ let isPaused = false;
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
 
+// 2.5D效果参数
+const snakeHeight = 4;
+const foodHeight = 6;
+const shadowOffset = 4;
+
 // 初始化游戏
 function initGame() {
     snake = [];
@@ -56,7 +61,7 @@ function generateFood() {
 // 绘制游戏
 function drawGame() {
     // 清空画布
-    ctx.fillStyle = '#f8f8f8';
+    ctx.fillStyle = '#f0f0f0';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // 绘制地面网格（增强场景层次感）
@@ -69,27 +74,45 @@ function drawGame() {
         let y = segment.y * gridSize;
         
         // 绘制蛇身阴影（增加立体感）
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fillRect(x + 2, y + 2, gridSize - 2, gridSize - 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(x + shadowOffset, y + shadowOffset, gridSize - 2, gridSize - 2);
         
         // 蛇头
         if (i === 0) {
+            // 绘制蛇头底部（增加高度感）
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.fillRect(x, y + gridSize - snakeHeight, gridSize - 2, snakeHeight);
+            
             // 蛇头渐变（立体感）
             let headGradient = ctx.createLinearGradient(x, y, x + gridSize, y + gridSize);
             headGradient.addColorStop(0, '#388E3C');
             headGradient.addColorStop(1, '#2E7D32');
             ctx.fillStyle = headGradient;
-            ctx.fillRect(x, y, gridSize - 2, gridSize - 2);
+            ctx.fillRect(x, y, gridSize - 2, gridSize - snakeHeight);
+            
+            // 绘制蛇头侧面（增加立体感）
+            ctx.fillStyle = '#2E7D32';
+            ctx.fillRect(x + gridSize - 2, y, 2, gridSize - snakeHeight);
+            ctx.fillRect(x, y + gridSize - snakeHeight, gridSize - 2, 2);
             
             // 绘制蛇眼（增强立体感）
             drawSnakeEyes(x, y);
         } else {
+            // 绘制蛇身底部（增加高度感）
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.fillRect(x, y + gridSize - snakeHeight, gridSize - 2, snakeHeight);
+            
             // 蛇身渐变（立体感）
             let bodyGradient = ctx.createLinearGradient(x, y, x + gridSize, y + gridSize);
             bodyGradient.addColorStop(0, '#4CAF50');
             bodyGradient.addColorStop(1, '#388E3C');
             ctx.fillStyle = bodyGradient;
-            ctx.fillRect(x, y, gridSize - 2, gridSize - 2);
+            ctx.fillRect(x, y, gridSize - 2, gridSize - snakeHeight);
+            
+            // 绘制蛇身侧面（增加立体感）
+            ctx.fillStyle = '#388E3C';
+            ctx.fillRect(x + gridSize - 2, y, 2, gridSize - snakeHeight);
+            ctx.fillRect(x, y + gridSize - snakeHeight, gridSize - 2, 2);
         }
     }
     
@@ -97,19 +120,30 @@ function drawGame() {
     let foodX = food.x * gridSize;
     let foodY = food.y * gridSize;
     
-    // 食物阴影（增加立体感）
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-    ctx.fillRect(foodX + 2, foodY + 2, gridSize - 2, gridSize - 2);
+    // 绘制食物阴影（增加立体感）
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.beginPath();
+    ctx.ellipse(foodX + gridSize/2, foodY + gridSize + 2, gridSize/2, gridSize/4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 绘制食物底部（增加高度感）
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(foodX + 2, foodY + gridSize - foodHeight, gridSize - 6, foodHeight);
     
     // 食物渐变（立体感）
     let foodGradient = ctx.createLinearGradient(foodX, foodY, foodX + gridSize, foodY + gridSize);
     foodGradient.addColorStop(0, '#FF5722');
     foodGradient.addColorStop(1, '#E64A19');
     ctx.fillStyle = foodGradient;
-    ctx.fillRect(foodX, foodY, gridSize - 2, gridSize - 2);
+    ctx.fillRect(foodX + 2, foodY, gridSize - 6, gridSize - foodHeight);
+    
+    // 绘制食物侧面（增加立体感）
+    ctx.fillStyle = '#E64A19';
+    ctx.fillRect(foodX + gridSize - 4, foodY, 2, gridSize - foodHeight);
+    ctx.fillRect(foodX + 2, foodY + gridSize - foodHeight, gridSize - 6, 2);
     
     // 绘制食物高光（增强立体感）
-    drawFoodHighlight(foodX, foodY);
+    drawFoodHighlight(foodX + 2, foodY);
     
     // 游戏结束提示
     if (isGameOver) {
@@ -127,10 +161,26 @@ function drawGame() {
 
 // 绘制地面网格
 function drawGroundGrid() {
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-    ctx.lineWidth = 0.5;
+    // 绘制地面明暗渐变（模拟光照效果）
+    for (let y = 0; y < tileCount; y++) {
+        for (let x = 0; x < tileCount; x++) {
+            let tileX = x * gridSize;
+            let tileY = y * gridSize;
+            
+            // 根据位置计算亮度（模拟光照）
+            let brightness = 0.7 + (x + y) * 0.02;
+            let gradient = ctx.createLinearGradient(tileX, tileY, tileX + gridSize, tileY + gridSize);
+            gradient.addColorStop(0, `rgba(248, 248, 248, ${brightness})`);
+            gradient.addColorStop(1, `rgba(220, 220, 220, ${brightness})`);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(tileX, tileY, gridSize, gridSize);
+        }
+    }
     
     // 绘制网格线
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.lineWidth = 0.5;
+    
     for (let x = 0; x <= canvas.width; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
