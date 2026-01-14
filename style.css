@@ -1,0 +1,124 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    perspective: 1000px;
+}
+
+.game-container {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    transform: rotateX(5deg) rotateY(2deg);
+    transition: transform 0.3s ease;
+}
+
+.game-container:hover {
+    transform: rotateX(3deg) rotateY(1deg);
+}
+
+#gameCanvas {
+    border: 3px solid #333;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    transform: translateZ(20px);
+    transition: transform 0.3s ease;
+}
+
+#gameCanvas:hover {
+    transform: translateZ(30px);
+}
+
+.score {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #555;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    transform: translateZ(15px);
+}
+
+.controls {
+    margin-bottom: 25px;
+    transform: translateZ(10px);
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    margin: 0 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateZ(5px);
+}
+
+button:hover {
+    background-color: #45a049;
+    transform: translateZ(10px) translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+button:active {
+    transform: translateZ(2px) translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.instructions {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    transform: translateZ(5px);
+    text-shadow: 0.5px 0.5px 1px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 480px) {
+    .game-container {
+        padding: 20px;
+        transform: rotateX(3deg) rotateY(1deg);
+    }
+    
+    h1 {
+        font-size: 20px;
+    }
+    
+    #gameCanvas {
+        width: 100%;
+        height: auto;
+        max-width: 300px;
+        transform: translateZ(15px);
+    }
+    
+    button {
+        padding: 10px 20px;
+        font-size: 12px;
+        transform: translateZ(3px);
+    }
+    
+    button:hover {
+        transform: translateZ(6px) translateY(-1px);
+    }
+    
+    button:active {
+        transform: translateZ(1px) translateY(0.5px);
+    }
+}
