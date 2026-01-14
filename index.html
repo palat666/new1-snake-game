@@ -1,1 +1,33 @@
-
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2.5D贪吃蛇游戏</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 防止页面滚动 */
+        body {
+            overflow: hidden;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>贪吃蛇游戏</h1>
+        <div class="score">分数: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div class="controls">
+            <button id="startBtn">开始游戏</button>
+            <button id="pauseBtn">暂停</button>
+            <button id="restartBtn">重新开始</button>
+        </div>
+        <div class="instructions">
+            <p>使用方向键或WASD控制蛇的移动</p>
+            <p>吃掉食物获得分数，撞到墙壁或自己游戏结束</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
