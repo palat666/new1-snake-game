@@ -19,10 +19,14 @@ let isPaused = false;
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
 
-// 2.5D效果参数
-const snakeHeight = 4;
-const foodHeight = 6;
-const shadowOffset = 4;
+// 2.5D效果参数（立体元素配置）
+const config3d = {
+  thickness: 15, // 元素厚度（蛇身、食物的侧面高度）
+  mainColor: { snake: "#2ecc71", food: "#e74c3c" }, // 主面颜色
+  sideColor: { snake: "#27ae60", food: "#c0392b" }, // 侧面颜色（比主面深一级，模拟光影）
+  shadowColor: "rgba(0, 0, 0, 0.15)", // 阴影颜色
+  shadowOffset: 8 // 阴影偏移量
+};
 
 // 初始化游戏
 function initGame() {
@@ -58,14 +62,75 @@ function generateFood() {
     }
 }
 
+// 绘制单段蛇身（2D逻辑不变，新增立体渲染）
+function drawSnakeSegment(x, y, size, isHead) {
+  const { thickness, mainColor, sideColor, shadowColor, shadowOffset } = config3d;
+
+  // 步骤1：绘制阴影（底层，营造悬浮感）
+  ctx.fillStyle = shadowColor;
+  ctx.fillRect(
+    x + shadowOffset,
+    y + shadowOffset + thickness, // 偏移至侧面下方
+    size,
+    size
+  );
+
+  // 步骤2：绘制蛇身侧面（厚度部分，模拟3D侧面）
+  ctx.fillStyle = sideColor.snake;
+  // 水平侧面（右方）
+  ctx.fillRect(x + size, y, thickness, size);
+  // 垂直侧面（下方）
+  ctx.fillRect(x, y + size, size + thickness, thickness);
+
+  // 步骤3：绘制蛇身主面（原有2D绘制逻辑，顶层）
+  ctx.fillStyle = mainColor.snake;
+  ctx.fillRect(x, y, size, size);
+  
+  // 如果是蛇头，绘制眼睛
+  if (isHead) {
+    drawSnakeEyes(x, y);
+  }
+}
+
+// 绘制食物（立体效果，与蛇身风格一致）
+function drawFood(x, y, size) {
+  const { thickness, mainColor, sideColor, shadowColor, shadowOffset } = config3d;
+
+  // 步骤1：绘制阴影
+  ctx.fillStyle = shadowColor;
+  ctx.fillRect(
+    x + shadowOffset,
+    y + shadowOffset + thickness,
+    size,
+    size
+  );
+
+  // 步骤2：绘制食物侧面
+  ctx.fillStyle = sideColor.food;
+  // 水平侧面（右方）
+  ctx.fillRect(x + size, y, thickness, size);
+  // 垂直侧面（下方）
+  ctx.fillRect(x, y + size, size + thickness, thickness);
+
+  // 步骤3：绘制食物主面
+  ctx.fillStyle = mainColor.food;
+  ctx.beginPath();
+  ctx.rect(x, y, size, size);
+  ctx.fill();
+  
+  // 绘制食物高光
+  drawFoodHighlight(x, y);
+}
+
 // 绘制游戏
 function drawGame() {
     // 清空画布
-    ctx.fillStyle = '#f0f0f0';
+    ctx.fillStyle = '#f8f5f0';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // 绘制地面网格（增强场景层次感）
+    // 绘制2.5D地面网格和边界
     drawGroundGrid();
+    drawGameWall();
     
     // 绘制蛇
     for (let i = snake.length - 1; i >= 0; i--) {
@@ -73,77 +138,14 @@ function drawGame() {
         let x = segment.x * gridSize;
         let y = segment.y * gridSize;
         
-        // 绘制蛇身阴影（增加立体感）
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.fillRect(x + shadowOffset, y + shadowOffset, gridSize - 2, gridSize - 2);
-        
-        // 蛇头
-        if (i === 0) {
-            // 绘制蛇头底部（增加高度感）
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-            ctx.fillRect(x, y + gridSize - snakeHeight, gridSize - 2, snakeHeight);
-            
-            // 蛇头渐变（立体感）
-            let headGradient = ctx.createLinearGradient(x, y, x + gridSize, y + gridSize);
-            headGradient.addColorStop(0, '#388E3C');
-            headGradient.addColorStop(1, '#2E7D32');
-            ctx.fillStyle = headGradient;
-            ctx.fillRect(x, y, gridSize - 2, gridSize - snakeHeight);
-            
-            // 绘制蛇头侧面（增加立体感）
-            ctx.fillStyle = '#2E7D32';
-            ctx.fillRect(x + gridSize - 2, y, 2, gridSize - snakeHeight);
-            ctx.fillRect(x, y + gridSize - snakeHeight, gridSize - 2, 2);
-            
-            // 绘制蛇眼（增强立体感）
-            drawSnakeEyes(x, y);
-        } else {
-            // 绘制蛇身底部（增加高度感）
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-            ctx.fillRect(x, y + gridSize - snakeHeight, gridSize - 2, snakeHeight);
-            
-            // 蛇身渐变（立体感）
-            let bodyGradient = ctx.createLinearGradient(x, y, x + gridSize, y + gridSize);
-            bodyGradient.addColorStop(0, '#4CAF50');
-            bodyGradient.addColorStop(1, '#388E3C');
-            ctx.fillStyle = bodyGradient;
-            ctx.fillRect(x, y, gridSize - 2, gridSize - snakeHeight);
-            
-            // 绘制蛇身侧面（增加立体感）
-            ctx.fillStyle = '#388E3C';
-            ctx.fillRect(x + gridSize - 2, y, 2, gridSize - snakeHeight);
-            ctx.fillRect(x, y + gridSize - snakeHeight, gridSize - 2, 2);
-        }
+        // 绘制蛇身段
+        drawSnakeSegment(x, y, gridSize, i === 0);
     }
     
     // 绘制食物
     let foodX = food.x * gridSize;
     let foodY = food.y * gridSize;
-    
-    // 绘制食物阴影（增加立体感）
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.beginPath();
-    ctx.ellipse(foodX + gridSize/2, foodY + gridSize + 2, gridSize/2, gridSize/4, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // 绘制食物底部（增加高度感）
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(foodX + 2, foodY + gridSize - foodHeight, gridSize - 6, foodHeight);
-    
-    // 食物渐变（立体感）
-    let foodGradient = ctx.createLinearGradient(foodX, foodY, foodX + gridSize, foodY + gridSize);
-    foodGradient.addColorStop(0, '#FF5722');
-    foodGradient.addColorStop(1, '#E64A19');
-    ctx.fillStyle = foodGradient;
-    ctx.fillRect(foodX + 2, foodY, gridSize - 6, gridSize - foodHeight);
-    
-    // 绘制食物侧面（增加立体感）
-    ctx.fillStyle = '#E64A19';
-    ctx.fillRect(foodX + gridSize - 4, foodY, 2, gridSize - foodHeight);
-    ctx.fillRect(foodX + 2, foodY + gridSize - foodHeight, gridSize - 6, 2);
-    
-    // 绘制食物高光（增强立体感）
-    drawFoodHighlight(foodX + 2, foodY);
+    drawFood(foodX, foodY, gridSize);
     
     // 游戏结束提示
     if (isGameOver) {
@@ -159,41 +161,47 @@ function drawGame() {
     }
 }
 
-// 绘制地面网格
+// 绘制2.5D地面网格纹理
 function drawGroundGrid() {
-    // 绘制地面明暗渐变（模拟光照效果）
-    for (let y = 0; y < tileCount; y++) {
-        for (let x = 0; x < tileCount; x++) {
-            let tileX = x * gridSize;
-            let tileY = y * gridSize;
-            
-            // 根据位置计算亮度（模拟光照）
-            let brightness = 0.7 + (x + y) * 0.02;
-            let gradient = ctx.createLinearGradient(tileX, tileY, tileX + gridSize, tileY + gridSize);
-            gradient.addColorStop(0, `rgba(248, 248, 248, ${brightness})`);
-            gradient.addColorStop(1, `rgba(220, 220, 220, ${brightness})`);
-            ctx.fillStyle = gradient;
-            ctx.fillRect(tileX, tileY, gridSize, gridSize);
-        }
-    }
-    
-    // 绘制网格线
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-    ctx.lineWidth = 0.5;
-    
-    for (let x = 0; x <= canvas.width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
-    
-    for (let y = 0; y <= canvas.height; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
+  const gridSize = 40; // 网格大小，与蛇身尺寸匹配
+  ctx.strokeStyle = "rgba(200, 190, 170, 0.3)"; // 浅淡纹理色，不干扰核心元素
+  ctx.lineWidth = 1;
+
+  // 绘制水平网格（随透视延伸）
+  for (let y = 0; y <= canvas.height; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+
+  // 绘制垂直网格（随透视延伸）
+  for (let x = 0; x <= canvas.width; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+}
+
+// 绘制立体围墙（边界高度）
+function drawGameWall() {
+  const wallWidth = 20;
+  const wallHeight = 30; // 围墙高度，比蛇身厚度更高
+  
+  // 围墙主色
+  ctx.fillStyle = "#d3d0c8";
+  // 上围墙
+  ctx.fillRect(0, -wallHeight, canvas.width, wallHeight);
+  // 左围墙
+  ctx.fillRect(-wallWidth, 0, wallWidth, canvas.height);
+  
+  // 围墙侧面色（深一级，模拟立体）
+  ctx.fillStyle = "#b9b6ae";
+  // 下围墙（立体侧面）
+  ctx.fillRect(0, canvas.height, canvas.width, wallHeight);
+  // 右围墙（立体侧面）
+  ctx.fillRect(canvas.width, 0, wallWidth, canvas.height);
 }
 
 // 绘制蛇眼
@@ -225,7 +233,13 @@ function drawSnakeEyes(x, y) {
 function drawFoodHighlight(x, y) {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.beginPath();
-    ctx.arc(x + 5, y + 5, 2, 0, Math.PI * 2);
+    ctx.arc(x + gridSize/2 - 5, y + 5, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 添加第二个高光点
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.beginPath();
+    ctx.arc(x + gridSize/2 + 3, y + 8, 2, 0, Math.PI * 2);
     ctx.fill();
 }
 
