@@ -11,7 +11,9 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    perspective: 1000px;
+    perspective: 1500px;
+    overflow: hidden;
+    touch-action: none;
 }
 
 .game-container {
@@ -20,14 +22,15 @@ body {
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
     padding: 30px;
     text-align: center;
-    max-width: 500px;
+    max-width: 600px;
     width: 100%;
-    transform: rotateX(5deg) rotateY(2deg);
+    transform: rotateX(45deg) rotateY(45deg) translateZ(50px);
     transition: transform 0.3s ease;
+    transform-style: preserve-3d;
 }
 
 .game-container:hover {
-    transform: rotateX(3deg) rotateY(1deg);
+    transform: rotateX(40deg) rotateY(40deg) translateZ(60px);
 }
 
 #gameCanvas {
@@ -35,13 +38,16 @@ body {
     border-radius: 8px;
     background-color: #f8f8f8;
     margin-bottom: 25px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    transform: translateZ(20px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+    transform: translateZ(100px) rotateX(-45deg) rotateY(-45deg);
     transition: transform 0.3s ease;
+    transform-style: preserve-3d;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 #gameCanvas:hover {
-    transform: translateZ(30px);
+    transform: translateZ(120px) rotateX(-45deg) rotateY(-45deg);
 }
 
 .score {
